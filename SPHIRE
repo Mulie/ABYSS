@@ -1,0 +1,44 @@
+#pragma strict
+var x : Vector3 ;
+private var startPosition : Vector3;//ac start pos
+var player : GameObject;
+var pp : PlayerPos;
+var movx : float = 0.0;
+var movz : float = 0.0;
+
+   	 InvokeRepeating("moving", 2, 4);
+function Start () {
+    player = GameObject.Find('Player');
+    pp = player.GetComponent(PlayerPos);
+
+}
+
+function Update () {
+    	x = new Vector3 (movx,0,movz);
+    	transform.Translate(x);
+   	 var distance = Vector3.Distance(pp.transform.position, transform.position);
+   	 if (Input.GetButton("Fire2")){
+   	      movx = 0;
+   	      movz = 0;}
+   	 if (player.transform.position.y < 10){
+
+   	 transform.position.x += (pp.PlayerP.x - transform.position.x)*0.01;
+   	 transform.position.z += (pp.PlayerP.z - transform.position.z)*0.01;
+   	 }
+    }
+	
+#pragma strict
+var x : Vector3 ;
+var player : GameObject;
+var myTransform : Transform;
+private var startPosition : Vector3;
+   	 
+function Start () {
+    
+}
+function Update () {
+
+   	  var distance = Vector3.Distance(player.transform.position, transform.position);
+   	  if (distance <= 1.0f){
+   	  Application.LoadLevel(Application.loadedLevel);}
+   	  }
