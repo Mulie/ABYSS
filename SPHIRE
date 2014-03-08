@@ -27,18 +27,3 @@ function Update () {
    	 }
     }
 	
-#pragma strict
-var x : Vector3 ;
-var player : GameObject;
-var myTransform : Transform;
-private var startPosition : Vector3;
-   	 
-function Start () {
-    
-}
-function Update () {
-
-   	  var distance = Vector3.Distance(player.transform.position, transform.position);
-   	  if (distance <= 1.0f){
-   	  Application.LoadLevel(Application.loadedLevel);}
-   	  }
