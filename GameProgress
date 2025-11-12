@@ -1,0 +1,271 @@
+#pragma strict
+
+// =============================================================================
+// GAME PROGRESS - SCORING AND ACHIEVEMENT SYSTEM
+// =============================================================================
+// Tracks the young girl's journey through the abyss, recording her achievements,
+// points earned, and milestones reached. This gives meaning to her struggle
+// and celebrates moments of safety and survival.
+// =============================================================================
+
+// --- Scoring ---
+private var totalPoints : int = 0;
+private var highScore : int = 0;
+private var currentSessionPoints : int = 0;
+
+// --- Statistics ---
+private var safeZonesFound : int = 0;
+private var totalDeaths : int = 0;
+private var longestSurvivalTime : float = 0.0;
+private var currentSurvivalTime : float = 0.0;
+
+// --- Milestones ---
+private var milestonesReached : Array = new Array();
+
+// --- Point Multipliers ---
+var safeZoneMultiplier : float = 1.0;   // Multiplier for safe zone points
+var survivalMultiplier : float = 1.0;   // Multiplier for survival time
+var difficultyMultiplier : float = 1.0; // Overall difficulty multiplier
+
+// --- Achievement Definitions ---
+class Milestone {
+    var name : String;
+    var description : String;
+    var pointsRequired : int;
+    var achieved : boolean;
+
+    function Milestone(n : String, d : String, p : int) {
+        name = n;
+        description = d;
+        pointsRequired = p;
+        achieved = false;
+    }
+}
+
+private var milestones : Array;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Awake() {
+    // Make this object persist between scenes
+    DontDestroyOnLoad(gameObject);
+
+    // Initialize milestones
+    InitializeMilestones();
+
+    // Load saved progress
+    LoadProgress();
+
+    Debug.Log("GameProgress: Journey tracking initialized");
+    Debug.Log("GameProgress: High Score: " + highScore + " points");
+}
+
+function Start() {
+    // Start tracking survival time
+    InvokeRepeating("UpdateSurvivalTime", 1.0, 1.0);
+}
+
+// =============================================================================
+// MILESTONE SYSTEM
+// =============================================================================
+function InitializeMilestones() {
+    milestones = new Array();
+
+    milestones.Push(new Milestone("First Steps", "Begin the journey", 0));
+    milestones.Push(new Milestone("Glimmer of Hope", "Reach first safe zone", 100));
+    milestones.Push(new Milestone("Determined", "Earn 500 points", 500));
+    milestones.Push(new Milestone("Survivor", "Earn 1000 points", 1000));
+    milestones.Push(new Milestone("Haven Seeker", "Find 3 safe zones", 0));
+    milestones.Push(new Milestone("Courageous", "Earn 2500 points", 2500));
+    milestones.Push(new Milestone("Beacon of Hope", "Earn 5000 points", 5000));
+    milestones.Push(new Milestone("Legend of the Abyss", "Earn 10000 points", 10000));
+}
+
+function CheckMilestones() {
+    for (var i = 0; i < milestones.length; i++) {
+        var milestone : Milestone = milestones[i];
+
+        if (!milestone.achieved) {
+            var shouldAchieve = false;
+
+            // Check point-based milestones
+            if (milestone.pointsRequired > 0 && totalPoints >= milestone.pointsRequired) {
+                shouldAchieve = true;
+            }
+
+            // Check safe zone milestone
+            if (milestone.name == "Haven Seeker" && safeZonesFound >= 3) {
+                shouldAchieve = true;
+            }
+
+            if (shouldAchieve) {
+                UnlockMilestone(milestone);
+            }
+        }
+    }
+}
+
+function UnlockMilestone(milestone : Milestone) {
+    milestone.achieved = true;
+    milestonesReached.Push(milestone.name);
+
+    Debug.Log("╔══════════════════════════════════════╗");
+    Debug.Log("║   MILESTONE ACHIEVED!                ║");
+    Debug.Log("║   " + milestone.name);
+    Debug.Log("║   " + milestone.description);
+    Debug.Log("╚══════════════════════════════════════╝");
+
+    // TODO: Show achievement notification on screen
+    // TODO: Play achievement sound
+    // TODO: Award bonus points
+}
+
+// =============================================================================
+// SCORING SYSTEM
+// =============================================================================
+function AddPoints(points : int, reason : String) {
+    // Apply multipliers
+    var actualPoints = Mathf.RoundToInt(points * difficultyMultiplier);
+
+    totalPoints += actualPoints;
+    currentSessionPoints += actualPoints;
+
+    Debug.Log("GameProgress: +" + actualPoints + " points - " + reason + " (Total: " + totalPoints + ")");
+
+    // Check for new high score
+    if (totalPoints > highScore) {
+        highScore = totalPoints;
+        Debug.Log("GameProgress: NEW HIGH SCORE! " + highScore + " points!");
+    }
+
+    // Check if milestones unlocked
+    CheckMilestones();
+
+    // Save progress
+    SaveProgress();
+}
+
+function UpdateSurvivalTime() {
+    currentSurvivalTime += 1.0;
+
+    // Award survival points every 10 seconds
+    if (currentSurvivalTime % 10 == 0) {
+        var survivalPoints = Mathf.RoundToInt(10 * survivalMultiplier);
+        AddPoints(survivalPoints, "Survived " + currentSurvivalTime + " seconds");
+    }
+
+    // Update longest survival time
+    if (currentSurvivalTime > longestSurvivalTime) {
+        longestSurvivalTime = currentSurvivalTime;
+    }
+}
+
+// =============================================================================
+// STATISTICS TRACKING
+// =============================================================================
+function IncrementSafeZonesFound() {
+    safeZonesFound++;
+    Debug.Log("GameProgress: Safe zones discovered: " + safeZonesFound);
+    CheckMilestones();
+}
+
+function RecordDeath() {
+    totalDeaths++;
+    Debug.Log("GameProgress: Journey ended. Total attempts: " + totalDeaths);
+
+    // Reset session
+    currentSessionPoints = 0;
+    currentSurvivalTime = 0.0;
+
+    SaveProgress();
+}
+
+// =============================================================================
+// SAVE/LOAD SYSTEM
+// =============================================================================
+function SaveProgress() {
+    PlayerPrefs.SetInt("ABYSS_HighScore", highScore);
+    PlayerPrefs.SetInt("ABYSS_TotalPoints", totalPoints);
+    PlayerPrefs.SetInt("ABYSS_SafeZones", safeZonesFound);
+    PlayerPrefs.SetInt("ABYSS_Deaths", totalDeaths);
+    PlayerPrefs.SetFloat("ABYSS_LongestSurvival", longestSurvivalTime);
+    PlayerPrefs.Save();
+}
+
+function LoadProgress() {
+    highScore = PlayerPrefs.GetInt("ABYSS_HighScore", 0);
+    totalPoints = PlayerPrefs.GetInt("ABYSS_TotalPoints", 0);
+    safeZonesFound = PlayerPrefs.GetInt("ABYSS_SafeZones", 0);
+    totalDeaths = PlayerPrefs.GetInt("ABYSS_Deaths", 0);
+    longestSurvivalTime = PlayerPrefs.GetFloat("ABYSS_LongestSurvival", 0.0);
+}
+
+function ResetProgress() {
+    totalPoints = 0;
+    safeZonesFound = 0;
+    totalDeaths = 0;
+    longestSurvivalTime = 0.0;
+    currentSurvivalTime = 0.0;
+    currentSessionPoints = 0;
+    milestonesReached.Clear();
+
+    // Reset milestone achievements
+    for (var i = 0; i < milestones.length; i++) {
+        var milestone : Milestone = milestones[i];
+        milestone.achieved = false;
+    }
+
+    SaveProgress();
+    Debug.Log("GameProgress: All progress has been reset");
+}
+
+// =============================================================================
+// PUBLIC GETTERS
+// =============================================================================
+function GetTotalPoints() : int {
+    return totalPoints;
+}
+
+function GetHighScore() : int {
+    return highScore;
+}
+
+function GetSafeZonesFound() : int {
+    return safeZonesFound;
+}
+
+function GetCurrentSurvivalTime() : float {
+    return currentSurvivalTime;
+}
+
+function GetLongestSurvivalTime() : float {
+    return longestSurvivalTime;
+}
+
+function GetSessionPoints() : int {
+    return currentSessionPoints;
+}
+
+// =============================================================================
+// UI DISPLAY
+// =============================================================================
+function OnGUI() {
+    var hudStyle = new GUIStyle();
+    hudStyle.fontSize = 14;
+    hudStyle.normal.textColor = Color.white;
+    hudStyle.alignment = TextAnchor.UpperRight;
+
+    // Score display (top right)
+    var screenWidth = Screen.width;
+    GUI.Label(new Rect(screenWidth - 250, 10, 240, 25), "Score: " + totalPoints, hudStyle);
+    GUI.Label(new Rect(screenWidth - 250, 30, 240, 25), "High Score: " + highScore, hudStyle);
+    GUI.Label(new Rect(screenWidth - 250, 50, 240, 25), "Safe Zones: " + safeZonesFound, hudStyle);
+
+    // Survival time
+    var minutes = Mathf.FloorToInt(currentSurvivalTime / 60);
+    var seconds = Mathf.FloorToInt(currentSurvivalTime % 60);
+    GUI.Label(new Rect(screenWidth - 250, 70, 240, 25),
+              "Time: " + minutes.ToString("00") + ":" + seconds.ToString("00"),
+              hudStyle);
+}

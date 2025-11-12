@@ -1,0 +1,238 @@
+#pragma strict
+
+// =============================================================================
+// SAFE ZONE - PEACEFUL SANCTUARY
+// =============================================================================
+// Safe zones are havens of peace in the abyss where the young girl can rest,
+// recover hope, and earn points. These represent moments of safety and
+// stability in her dangerous journey.
+// =============================================================================
+
+// --- Configuration ---
+var zoneName : String = "Sanctuary";        // Name of this safe zone
+var pointsAwarded : int = 100;              // Points given when entering
+var bonusPerSecond : int = 10;              // Additional points per second stayed
+var maxBonusTime : float = 10.0;            // Max seconds to earn bonus points
+var healingRate : float = 15.0;             // Hope recovery rate in this zone
+
+// --- Visual Settings ---
+var zoneColor : Color = Color.green;        // Color for visualization
+var glowIntensity : float = 0.5;            // Glow intensity
+var pulseSpeed : float = 1.0;               // Speed of pulsing effect
+
+// --- State Tracking ---
+private var isPlayerInZone : boolean = false;
+private var player : GameObject;
+private var playerScript : PlayerCharacter;
+private var enterTime : float = 0.0;
+private var hasAwardedEntryPoints : boolean = false;
+private var timeInZone : float = 0.0;
+private var lastBonusTime : float = 0.0;
+
+// --- References ---
+var gameProgress : GameProgress;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Start() {
+    // Find player
+    player = GameObject.Find("Player");
+    if (player != null) {
+        playerScript = player.GetComponent(PlayerCharacter);
+    }
+
+    // Find game progress
+    var progressObj = GameObject.Find("GameProgress");
+    if (progressObj != null) {
+        gameProgress = progressObj.GetComponent(GameProgress);
+    }
+
+    Debug.Log("SafeZone: '" + zoneName + "' initialized - Sanctuary of peace awaits");
+
+    // Setup collider if not present
+    var collider = GetComponent(Collider);
+    if (collider == null) {
+        var sphereCollider = gameObject.AddComponent(SphereCollider);
+        sphereCollider.isTrigger = true;
+        sphereCollider.radius = 3.0;
+        Debug.Log("SafeZone: Added trigger collider automatically");
+    } else {
+        collider.isTrigger = true;
+    }
+}
+
+// =============================================================================
+// UPDATE - BONUS POINTS OVER TIME
+// =============================================================================
+function Update() {
+    // Award bonus points while player stays in safe zone
+    if (isPlayerInZone && timeInZone < maxBonusTime) {
+        timeInZone += Time.deltaTime;
+
+        // Award bonus every second
+        if (Time.time - lastBonusTime >= 1.0) {
+            lastBonusTime = Time.time;
+
+            if (gameProgress != null) {
+                gameProgress.AddPoints(bonusPerSecond, "Resting in " + zoneName);
+            }
+
+            Debug.Log("SafeZone: " + zoneName + " - Peaceful rest bonus (+" + bonusPerSecond + " points)");
+        }
+    }
+
+    // Visual pulsing effect (for renderer if present)
+    var renderer = GetComponent(Renderer);
+    if (renderer != null) {
+        var pulse = Mathf.Sin(Time.time * pulseSpeed) * 0.5 + 0.5;
+        var currentColor = zoneColor;
+        currentColor.a = glowIntensity * pulse;
+
+        if (renderer.material != null) {
+            renderer.material.color = currentColor;
+        }
+    }
+}
+
+// =============================================================================
+// TRIGGER DETECTION
+// =============================================================================
+function OnTriggerEnter(other : Collider) {
+    // Check if player entered the safe zone
+    if (other.gameObject.tag == "Player" || other.gameObject.name == "Player") {
+        OnPlayerEnter(other.gameObject);
+    }
+}
+
+function OnTriggerExit(other : Collider) {
+    // Check if player left the safe zone
+    if (other.gameObject.tag == "Player" || other.gameObject.name == "Player") {
+        OnPlayerExit(other.gameObject);
+    }
+}
+
+// =============================================================================
+// PLAYER ENTER SAFE ZONE
+// =============================================================================
+function OnPlayerEnter(playerObj : GameObject) {
+    isPlayerInZone = true;
+    player = playerObj;
+    enterTime = Time.time;
+    timeInZone = 0.0;
+    lastBonusTime = Time.time;
+
+    // Get player script if not already cached
+    if (playerScript == null) {
+        playerScript = player.GetComponent(PlayerCharacter);
+    }
+
+    // Award entry points (only once)
+    if (!hasAwardedEntryPoints) {
+        hasAwardedEntryPoints = true;
+
+        if (gameProgress != null) {
+            gameProgress.AddPoints(pointsAwarded, "Reached " + zoneName);
+            gameProgress.IncrementSafeZonesFound();
+        }
+    }
+
+    // Notify player character
+    if (playerScript != null) {
+        playerScript.EnterSafeZone(zoneName, pointsAwarded);
+    }
+
+    Debug.Log("=================================================");
+    Debug.Log("SafeZone: The girl has found " + zoneName + "!");
+    Debug.Log("SafeZone: A moment of peace at last... (+" + pointsAwarded + " points)");
+    Debug.Log("=================================================");
+
+    // TODO: Play peaceful music
+    // TODO: Show message on screen
+    // TODO: Particle effects (gentle light, flowers, etc.)
+}
+
+// =============================================================================
+// PLAYER EXIT SAFE ZONE
+// =============================================================================
+function OnPlayerExit(playerObj : GameObject) {
+    isPlayerInZone = false;
+
+    var totalTimeStayed = Time.time - enterTime;
+    var totalBonusEarned = Mathf.Min(timeInZone, maxBonusTime) * bonusPerSecond;
+
+    Debug.Log("SafeZone: Leaving " + zoneName + " after " + totalTimeStayed.ToString("F1") + " seconds");
+    Debug.Log("SafeZone: Total bonus earned: " + totalBonusEarned + " points");
+
+    // Notify player character
+    if (playerScript != null) {
+        playerScript.ExitSafeZone(zoneName);
+    }
+
+    // TODO: Fade out peaceful music
+    // TODO: Show departure message
+}
+
+// =============================================================================
+// PUBLIC HELPER FUNCTIONS
+// =============================================================================
+function IsPlayerInZone() : boolean {
+    return isPlayerInZone;
+}
+
+function GetTimeInZone() : float {
+    return timeInZone;
+}
+
+function ResetZone() {
+    hasAwardedEntryPoints = false;
+    isPlayerInZone = false;
+    timeInZone = 0.0;
+}
+
+// =============================================================================
+// DEBUG VISUALIZATION
+// =============================================================================
+function OnDrawGizmos() {
+    // Draw safe zone boundary
+    Gizmos.color = new Color(zoneColor.r, zoneColor.g, zoneColor.b, 0.3);
+
+    var collider = GetComponent(Collider);
+    if (collider != null) {
+        var sphereCollider = collider as SphereCollider;
+        if (sphereCollider != null) {
+            Gizmos.DrawSphere(transform.position, sphereCollider.radius);
+        } else {
+            Gizmos.DrawCube(transform.position, Vector3.one * 3);
+        }
+    } else {
+        Gizmos.DrawWireSphere(transform.position, 3.0);
+    }
+
+    // Draw zone name in editor
+    #if UNITY_EDITOR
+    UnityEditor.Handles.Label(transform.position + Vector3.up * 2, zoneName + " (Safe)");
+    #endif
+}
+
+function OnDrawGizmosSelected() {
+    // Draw detailed info when selected
+    Gizmos.color = zoneColor;
+
+    var collider = GetComponent(Collider);
+    if (collider != null) {
+        var sphereCollider = collider as SphereCollider;
+        if (sphereCollider != null) {
+            Gizmos.DrawWireSphere(transform.position, sphereCollider.radius);
+            Gizmos.DrawWireSphere(transform.position, sphereCollider.radius * 1.1);
+        }
+    }
+
+    // Draw info text
+    #if UNITY_EDITOR
+    var info = zoneName + "\n" +
+               "Entry: +" + pointsAwarded + " pts\n" +
+               "Bonus: +" + bonusPerSecond + " pts/sec";
+    UnityEditor.Handles.Label(transform.position + Vector3.up * 3, info);
+    #endif
+}

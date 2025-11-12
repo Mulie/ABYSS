@@ -1,0 +1,55 @@
+#pragma strict
+
+// =============================================================================
+// PLAYER POSITION TRACKER
+// =============================================================================
+// Simple script that tracks and exposes the player's position for other
+// scripts to reference. This allows enemies and hazards to track the player.
+// =============================================================================
+
+// --- Public Position Reference ---
+var PlayerP : Vector3;                  // Current player position
+
+// --- Update Rate ---
+var updateRate : float = 0.1;           // How often to update position (in seconds)
+private var lastUpdateTime : float = 0.0;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Start() {
+    // Initialize position
+    PlayerP = transform.position;
+    Debug.Log("PlayerPos: Position tracking initialized");
+}
+
+// =============================================================================
+// UPDATE POSITION
+// =============================================================================
+function Update() {
+    // Update position at specified rate for performance
+    if (Time.time - lastUpdateTime >= updateRate) {
+        PlayerP = transform.position;
+        lastUpdateTime = Time.time;
+    }
+}
+
+// Late update ensures we get the most recent position after all movement
+function LateUpdate() {
+    PlayerP = transform.position;
+}
+
+// =============================================================================
+// PUBLIC HELPER FUNCTIONS
+// =============================================================================
+function GetPosition() : Vector3 {
+    return PlayerP;
+}
+
+function GetHeight() : float {
+    return transform.position.y;
+}
+
+function GetDistanceTo(target : Vector3) : float {
+    return Vector3.Distance(PlayerP, target);
+}

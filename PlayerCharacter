@@ -1,0 +1,298 @@
+#pragma strict
+
+// =============================================================================
+// PLAYER CHARACTER - THE YOUNG GIRL SEEKING SAFETY
+// =============================================================================
+// This script controls the protagonist, a young girl navigating through the
+// abyss in search of peace and safety. She must overcome dangerous obstacles
+// while searching for safe zones where she can rest and find hope.
+// =============================================================================
+
+// --- Character State ---
+var characterName : String = "Hope";    // The girl's name representing her journey
+var currentHope : float = 100.0;        // Hope level (decreases over time in danger)
+var maxHope : float = 100.0;            // Maximum hope
+var hopeDecayRate : float = 2.0;        // Hope lost per second in dangerous areas
+var hopeRecoveryRate : float = 10.0;    // Hope gained per second in safe zones
+
+// --- Movement Configuration ---
+var moveSpeed : float = 5.0;            // Walking speed
+var sprintSpeed : float = 8.0;          // Running speed when afraid
+var turnSpeed : float = 200.0;          // How fast she can turn
+var gravity : float = 20.0;             // Gravity force
+
+// --- Emotional States ---
+var isSafe : boolean = false;           // Is she currently in a safe zone?
+var isAfraid : boolean = false;         // Is she near danger?
+var fearDistance : float = 5.0;         // Distance to threat that triggers fear
+
+// --- References ---
+var gameProgress : GameProgress;        // Reference to scoring system
+private var controller : CharacterController;
+private var moveDirection : Vector3 = Vector3.zero;
+
+// --- Private Variables ---
+private var currentSpeed : float;
+private var timeSurvived : float = 0.0;
+private var lastSafeTime : float = 0.0;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Start () {
+    // Get or add CharacterController component
+    controller = GetComponent(CharacterController);
+    if (controller == null) {
+        controller = gameObject.AddComponent(CharacterController);
+        Debug.LogWarning("PlayerCharacter: Added CharacterController component automatically");
+    }
+
+    // Find GameProgress script
+    var progressObj = GameObject.Find("GameProgress");
+    if (progressObj != null) {
+        gameProgress = progressObj.GetComponent(GameProgress);
+    }
+
+    if (gameProgress == null) {
+        Debug.LogError("PlayerCharacter: GameProgress not found! Please create a GameObject named 'GameProgress' with the GameProgress script.");
+    }
+
+    Debug.Log("PlayerCharacter: " + characterName + " begins her journey through the abyss...");
+}
+
+// =============================================================================
+// UPDATE - CALLED EVERY FRAME
+// =============================================================================
+function Update () {
+    // Track survival time
+    timeSurvived += Time.deltaTime;
+
+    // Update hope based on current situation
+    UpdateHope();
+
+    // Handle movement
+    HandleMovement();
+
+    // Check for nearby threats
+    CheckForDanger();
+
+    // Update emotional state
+    UpdateEmotionalState();
+
+    // Check if hope is lost
+    if (currentHope <= 0) {
+        OnHopeLost();
+    }
+}
+
+// =============================================================================
+// MOVEMENT SYSTEM
+// =============================================================================
+function HandleMovement() {
+    if (controller == null) return;
+
+    // Get input
+    var horizontal = Input.GetAxis("Horizontal");
+    var vertical = Input.GetAxis("Vertical");
+
+    // Determine speed based on emotional state
+    var isSprinting = Input.GetButton("Fire3") || isAfraid;
+    currentSpeed = isSprinting ? sprintSpeed : moveSpeed;
+
+    // Calculate movement direction
+    if (controller.isGrounded) {
+        moveDirection = new Vector3(horizontal, 0, vertical);
+        moveDirection = transform.TransformDirection(moveDirection);
+        moveDirection *= currentSpeed;
+
+        // Apply rotation based on movement
+        if (moveDirection.magnitude > 0.1) {
+            var targetRotation = Quaternion.LookRotation(moveDirection);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                turnSpeed * Time.deltaTime
+            );
+        }
+    }
+
+    // Apply gravity
+    moveDirection.y -= gravity * Time.deltaTime;
+
+    // Move the character
+    controller.Move(moveDirection * Time.deltaTime);
+}
+
+// =============================================================================
+// HOPE SYSTEM
+// =============================================================================
+function UpdateHope() {
+    if (isSafe) {
+        // Recover hope in safe zones
+        currentHope = Mathf.Min(currentHope + hopeRecoveryRate * Time.deltaTime, maxHope);
+
+        // Track time in safety
+        lastSafeTime = Time.time;
+    } else {
+        // Lose hope gradually in dangerous areas
+        currentHope = Mathf.Max(currentHope - hopeDecayRate * Time.deltaTime, 0);
+    }
+
+    // Visual feedback for low hope
+    if (currentHope < 30) {
+        if (Time.frameCount % 60 == 0) { // Every second approximately
+            Debug.LogWarning("PlayerCharacter: " + characterName + "'s hope is fading... (" + currentHope.ToString("F1") + "%)");
+        }
+    }
+}
+
+// =============================================================================
+// DANGER DETECTION
+// =============================================================================
+function CheckForDanger() {
+    isAfraid = false;
+
+    // Check for nearby death spheres
+    var deathSpheres = GameObject.FindGameObjectsWithTag("DeathSphere");
+    for (var sphere : GameObject in deathSpheres) {
+        var distance = Vector3.Distance(transform.position, sphere.transform.position);
+        if (distance < fearDistance) {
+            isAfraid = true;
+            break;
+        }
+    }
+
+    // Check for nearby enemies
+    var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    for (var enemy : GameObject in enemies) {
+        var distance = Vector3.Distance(transform.position, enemy.transform.position);
+        if (distance < fearDistance) {
+            isAfraid = true;
+            break;
+        }
+    }
+}
+
+// =============================================================================
+// EMOTIONAL STATE
+// =============================================================================
+function UpdateEmotionalState() {
+    // This function can be used to trigger animations or visual effects
+    // based on the character's emotional state
+
+    if (isSafe && currentHope > 70) {
+        // She feels peaceful and secure
+        // TODO: Play calm animation, peaceful expression
+    } else if (isAfraid) {
+        // She is scared and running
+        // TODO: Play running animation, fearful expression
+    } else if (currentHope < 30) {
+        // She is losing hope
+        // TODO: Play tired/desperate animation
+    }
+}
+
+// =============================================================================
+// SAFE ZONE INTERACTION
+// =============================================================================
+function EnterSafeZone(safeZoneName : String, pointsAwarded : int) {
+    isSafe = true;
+
+    Debug.Log("PlayerCharacter: " + characterName + " found safety in " + safeZoneName + "!");
+    Debug.Log("PlayerCharacter: She feels peace washing over her... (+" + pointsAwarded + " points)");
+
+    // Award points through game progress system
+    if (gameProgress != null) {
+        gameProgress.AddPoints(pointsAwarded, "Found safety: " + safeZoneName);
+    }
+}
+
+function ExitSafeZone(safeZoneName : String) {
+    isSafe = false;
+
+    Debug.Log("PlayerCharacter: " + characterName + " leaves " + safeZoneName + " to continue her journey...");
+}
+
+// =============================================================================
+// HOPE LOST - GAME OVER
+// =============================================================================
+function OnHopeLost() {
+    Debug.Log("PlayerCharacter: " + characterName + "'s hope has faded completely...");
+    Debug.Log("PlayerCharacter: She survived for " + timeSurvived.ToString("F1") + " seconds before losing hope.");
+
+    // Disable movement
+    currentSpeed = 0;
+    moveDirection = Vector3.zero;
+
+    // TODO: Play defeat animation/sound
+    // TODO: Show game over screen
+
+    // Restart level after delay
+    Invoke("RestartJourney", 3.0);
+}
+
+function RestartJourney() {
+    Debug.Log("PlayerCharacter: " + characterName + " gathers her courage to try again...");
+    Application.LoadLevel(Application.loadedLevel);
+}
+
+// =============================================================================
+// PUBLIC HELPER FUNCTIONS
+// =============================================================================
+function GetHopePercentage() : float {
+    return (currentHope / maxHope) * 100.0;
+}
+
+function GetTimeSurvived() : float {
+    return timeSurvived;
+}
+
+function IsSafe() : boolean {
+    return isSafe;
+}
+
+// =============================================================================
+// DEBUG VISUALIZATION
+// =============================================================================
+function OnDrawGizmos() {
+    // Draw fear detection radius
+    Gizmos.color = new Color(1, 0.5, 0, 0.2);
+    Gizmos.DrawWireSphere(transform.position, fearDistance);
+
+    // Draw hope indicator
+    var hopePercent = currentHope / maxHope;
+    if (hopePercent > 0.6) {
+        Gizmos.color = Color.green;
+    } else if (hopePercent > 0.3) {
+        Gizmos.color = Color.yellow;
+    } else {
+        Gizmos.color = Color.red;
+    }
+    Gizmos.DrawSphere(transform.position + Vector3.up * 2, 0.3);
+}
+
+function OnGUI() {
+    // Simple HUD
+    var hudStyle = new GUIStyle();
+    hudStyle.fontSize = 16;
+    hudStyle.normal.textColor = Color.white;
+
+    // Hope display
+    var hopePercent = GetHopePercentage();
+    var hopeColor = Color.green;
+    if (hopePercent < 30) hopeColor = Color.red;
+    else if (hopePercent < 60) hopeColor = Color.yellow;
+
+    GUI.color = hopeColor;
+    GUI.Label(new Rect(10, 10, 300, 30), characterName + "'s Hope: " + hopePercent.ToString("F1") + "%", hudStyle);
+
+    // Status display
+    GUI.color = Color.white;
+    var status = isSafe ? "SAFE - Finding Peace" : (isAfraid ? "DANGER - Running!" : "Exploring");
+    GUI.Label(new Rect(10, 35, 300, 30), "Status: " + status, hudStyle);
+
+    // Score display
+    if (gameProgress != null) {
+        GUI.Label(new Rect(10, 60, 300, 30), "Points: " + gameProgress.GetTotalPoints(), hudStyle);
+    }
+}
