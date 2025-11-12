@@ -1,15 +1,116 @@
 #pragma strict
-var x : Vector3 ;
-var player : GameObject;
-var myTransform : Transform;
-private var startPosition : Vector3;
-   	 
-function Start () {
-    
-}
-function Update () {
 
-   	  var distance = Vector3.Distance(player.transform.position, transform.position);
-   	  if (distance <= 1.0f){
-   	  Application.LoadLevel(Application.loadedLevel);}
-   	  }
+// =============================================================================
+// DEATH SPHERE - INSTANT KILL HAZARD
+// =============================================================================
+// This script creates a deadly hazard that kills the player on contact.
+// When the player gets too close, the level restarts, representing death
+// in the abyss. This creates tension and challenge in the game.
+// =============================================================================
+
+// --- Configuration Variables ---
+var deathDistance : float = 1.0;        // Distance at which player dies
+var warningDistance : float = 3.0;      // Distance at which to show warning
+var respawnDelay : float = 0.5;         // Delay before respawning (in seconds)
+var showWarning : boolean = true;       // Whether to show proximity warning in console
+
+// --- References ---
+var player : GameObject;
+
+// --- Private Variables ---
+private var isPlayerDead : boolean = false;
+private var lastWarningTime : float = 0.0;
+private var warningCooldown : float = 1.0; // Show warning every second
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Start () {
+    // If player reference is not set in inspector, try to find it
+    if (player == null) {
+        player = GameObject.Find('Player');
+
+        if (player == null) {
+            Debug.LogError("Shere: Player GameObject not found! Assign player in inspector or ensure a 'Player' GameObject exists.");
+        } else {
+            Debug.Log("Shere: Death sphere initialized and tracking player");
+        }
+    }
+}
+
+// =============================================================================
+// UPDATE - CALLED EVERY FRAME
+// =============================================================================
+function Update () {
+    // Safety check
+    if (player == null || isPlayerDead) return;
+
+    // Calculate distance between player and this death sphere
+    var distanceToPlayer = Vector3.Distance(player.transform.position, transform.position);
+
+    // Warning system: Alert player when getting close to danger
+    if (showWarning && distanceToPlayer <= warningDistance && distanceToPlayer > deathDistance) {
+        if (Time.time - lastWarningTime >= warningCooldown) {
+            Debug.LogWarning("Shere: DANGER! Player approaching death sphere! Distance: " + distanceToPlayer.ToString("F2"));
+            lastWarningTime = Time.time;
+
+            // TODO: Add visual/audio warning effect here
+            // Example: Flash the screen red, play warning sound
+        }
+    }
+
+    // Death check: Player touched the death sphere
+    if (distanceToPlayer <= deathDistance) {
+        KillPlayer();
+    }
+}
+
+// =============================================================================
+// PLAYER DEATH HANDLER
+// =============================================================================
+function KillPlayer() {
+    if (isPlayerDead) return; // Prevent multiple deaths
+
+    isPlayerDead = true;
+    Debug.Log("Shere: Player killed by death sphere! Restarting level in " + respawnDelay + " seconds...");
+
+    // TODO: Add death effects here
+    // Example: Play death sound, show death animation, fade to black
+
+    // Restart the level after a short delay
+    Invoke("RestartLevel", respawnDelay);
+}
+
+// =============================================================================
+// LEVEL RESTART
+// =============================================================================
+function RestartLevel() {
+    Debug.Log("Shere: Restarting level...");
+
+    // Use the newer Unity scene management system
+    // Note: Application.LoadLevel is deprecated in newer Unity versions
+    // For Unity 5.3+, use: SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    Application.LoadLevel(Application.loadedLevel);
+}
+
+// =============================================================================
+// DEBUG VISUALIZATION
+// =============================================================================
+function OnDrawGizmos() {
+    // Draw death radius in red
+    Gizmos.color = new Color(1, 0, 0, 0.3);
+    Gizmos.DrawSphere(transform.position, deathDistance);
+
+    // Draw warning radius in yellow
+    Gizmos.color = new Color(1, 1, 0, 0.2);
+    Gizmos.DrawWireSphere(transform.position, warningDistance);
+}
+
+function OnDrawGizmosSelected() {
+    // Draw distance indicators when selected
+    Gizmos.color = Color.red;
+    Gizmos.DrawWireSphere(transform.position, deathDistance);
+
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawWireSphere(transform.position, warningDistance);
+}

@@ -1,29 +1,106 @@
 #pragma strict
-var x : Vector3 ;
-private var startPosition : Vector3;//ac start pos
-var player : GameObject;
-var pp : PlayerPos;
-var movx : float = 0.0;
-var movz : float = 0.0;
 
-   	 InvokeRepeating("moving", 2, 4);
+// =============================================================================
+// SPHERE ENEMY CONTROLLER
+// =============================================================================
+// This script controls an enemy sphere that chases the player through the abyss.
+// The sphere moves in random patterns and follows the player when they descend.
+// =============================================================================
+
+// --- Configuration Variables ---
+var chaseSpeed : float = 0.01;          // Speed at which sphere follows player
+var randomMovementSpeed : float = 0.1;  // Speed of random movement
+var chaseHeightThreshold : float = 10;  // Player must be below this height to be chased
+var stopDistance : float = 2.0;         // Distance at which sphere stops chasing
+
+// --- Private Variables ---
+private var player : GameObject;
+private var playerPosScript : PlayerPos;
+private var currentMovementX : float = 0.0;
+private var currentMovementZ : float = 0.0;
+private var isChasing : boolean = false;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
 function Start () {
+    // Find the player in the scene
     player = GameObject.Find('Player');
-    pp = player.GetComponent(PlayerPos);
 
+    if (player == null) {
+        Debug.LogError("SPHIRE: Player GameObject not found! Make sure there is a GameObject named 'Player' in the scene.");
+        return;
+    }
+
+    // Get the PlayerPos component
+    playerPosScript = player.GetComponent(PlayerPos);
+
+    if (playerPosScript == null) {
+        Debug.LogError("SPHIRE: PlayerPos component not found on Player GameObject!");
+        return;
+    }
+
+    // Start random movement pattern every 4 seconds, beginning after 2 seconds
+    InvokeRepeating("RandomMovement", 2, 4);
+
+    Debug.Log("SPHIRE: Enemy sphere initialized successfully");
 }
 
-function Update () {
-    	x = new Vector3 (movx,0,movz);
-    	transform.Translate(x);
-   	 var distance = Vector3.Distance(pp.transform.position, transform.position);
-   	 if (Input.GetButton("Fire2")){
-   	      movx = 0;
-   	      movz = 0;}
-   	 if (player.transform.position.y < 10){
+// =============================================================================
+// RANDOM MOVEMENT PATTERN
+// =============================================================================
+// Called every 4 seconds to give the sphere unpredictable movement
+function RandomMovement () {
+    // Generate random movement values between -1 and 1
+    currentMovementX = Random.Range(-randomMovementSpeed, randomMovementSpeed);
+    currentMovementZ = Random.Range(-randomMovementSpeed, randomMovementSpeed);
 
-   	 transform.position.x += (pp.PlayerP.x - transform.position.x)*0.01;
-   	 transform.position.z += (pp.PlayerP.z - transform.position.z)*0.01;
-   	 }
+    Debug.Log("SPHIRE: New random movement pattern - X: " + currentMovementX + ", Z: " + currentMovementZ);
+}
+
+// =============================================================================
+// UPDATE - CALLED EVERY FRAME
+// =============================================================================
+function Update () {
+    // Safety check
+    if (player == null || playerPosScript == null) return;
+
+    // Calculate distance to player
+    var distanceToPlayer = Vector3.Distance(playerPosScript.transform.position, transform.position);
+
+    // Apply random movement
+    var movement = new Vector3(currentMovementX, 0, currentMovementZ);
+    transform.Translate(movement);
+
+    // Player can temporarily stop sphere movement with Fire2 button (right mouse/secondary fire)
+    if (Input.GetButton("Fire2")) {
+        currentMovementX = 0;
+        currentMovementZ = 0;
+        isChasing = false;
+        return;
     }
-	
+
+    // Chase behavior: When player descends into the abyss (y < chaseHeightThreshold)
+    // the sphere becomes aggressive and chases them
+    if (player.transform.position.y < chaseHeightThreshold) {
+        isChasing = true;
+
+        // Only chase if not too close (prevents jittering)
+        if (distanceToPlayer > stopDistance) {
+            // Smoothly move towards player position
+            transform.position.x += (playerPosScript.PlayerP.x - transform.position.x) * chaseSpeed;
+            transform.position.z += (playerPosScript.PlayerP.z - transform.position.z) * chaseSpeed;
+        }
+    } else {
+        isChasing = false;
+    }
+}
+
+// =============================================================================
+// DEBUG VISUALIZATION
+// =============================================================================
+function OnDrawGizmosSelected() {
+    // Draw chase range in editor
+    Gizmos.color = Color.red;
+    Gizmos.DrawWireSphere(transform.position, stopDistance);
+}
