@@ -208,11 +208,6 @@ function OnDrawGizmos() {
     } else {
         Gizmos.DrawWireSphere(transform.position, 3.0);
     }
-
-    // Draw zone name in editor
-    #if UNITY_EDITOR
-    UnityEditor.Handles.Label(transform.position + Vector3.up * 2, zoneName + " (Safe)");
-    #endif
 }
 
 function OnDrawGizmosSelected() {
@@ -227,12 +222,4 @@ function OnDrawGizmosSelected() {
             Gizmos.DrawWireSphere(transform.position, sphereCollider.radius * 1.1);
         }
     }
-
-    // Draw info text
-    #if UNITY_EDITOR
-    var info = zoneName + "\n" +
-               "Entry: +" + pointsAwarded + " pts\n" +
-               "Bonus: +" + bonusPerSecond + " pts/sec";
-    UnityEditor.Handles.Label(transform.position + Vector3.up * 3, info);
-    #endif
 }

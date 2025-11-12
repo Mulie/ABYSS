@@ -44,10 +44,20 @@ class Milestone {
 
 private var milestones : Array;
 
+// --- Singleton ---
+private static var instance : GameProgress;
+
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
 function Awake() {
+    // Singleton pattern - only one instance allowed
+    if (instance != null && instance != this) {
+        Destroy(gameObject);
+        return;
+    }
+    instance = this;
+
     // Make this object persist between scenes
     DontDestroyOnLoad(gameObject);
 

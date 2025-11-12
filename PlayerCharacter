@@ -35,6 +35,7 @@ private var moveDirection : Vector3 = Vector3.zero;
 private var currentSpeed : float;
 private var timeSurvived : float = 0.0;
 private var lastSafeTime : float = 0.0;
+private var isDead : boolean = false;
 
 // =============================================================================
 // INITIALIZATION
@@ -64,6 +65,9 @@ function Start () {
 // UPDATE - CALLED EVERY FRAME
 // =============================================================================
 function Update () {
+    // Don't update if dead
+    if (isDead) return;
+
     // Track survival time
     timeSurvived += Time.deltaTime;
 
@@ -80,7 +84,7 @@ function Update () {
     UpdateEmotionalState();
 
     // Check if hope is lost
-    if (currentHope <= 0) {
+    if (currentHope <= 0 && !isDead) {
         OnHopeLost();
     }
 }
@@ -217,8 +221,16 @@ function ExitSafeZone(safeZoneName : String) {
 // HOPE LOST - GAME OVER
 // =============================================================================
 function OnHopeLost() {
+    if (isDead) return; // Prevent multiple calls
+    isDead = true;
+
     Debug.Log("PlayerCharacter: " + characterName + "'s hope has faded completely...");
     Debug.Log("PlayerCharacter: She survived for " + timeSurvived.ToString("F1") + " seconds before losing hope.");
+
+    // Record death in game progress
+    if (gameProgress != null) {
+        gameProgress.RecordDeath();
+    }
 
     // Disable movement
     currentSpeed = 0;

@@ -1,0 +1,282 @@
+#pragma strict
+
+// =============================================================================
+// TEST HELPER - DEBUG COMMANDS FOR TESTING
+// =============================================================================
+// This script provides keyboard shortcuts for testing game systems.
+// Attach to any GameObject in the scene. Only works in Unity Editor.
+// Remove from final builds.
+// =============================================================================
+
+// --- References ---
+private var player : GameObject;
+private var playerChar : PlayerCharacter;
+private var gameProgress : GameProgress;
+
+// --- Settings ---
+var showDebugInfo : boolean = true;
+var enableCheats : boolean = true;
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
+function Start() {
+    // Find player
+    player = GameObject.Find("Player");
+    if (player != null) {
+        playerChar = player.GetComponent(PlayerCharacter);
+    }
+
+    // Find game progress
+    var progressObj = GameObject.Find("GameProgress");
+    if (progressObj != null) {
+        gameProgress = progressObj.GetComponent(GameProgress);
+    }
+
+    Debug.Log("TestHelper: Debug commands enabled!");
+    Debug.Log("TestHelper: Press F1 to show command list");
+}
+
+// =============================================================================
+// UPDATE - CHECK FOR DEBUG KEYS
+// =============================================================================
+function Update() {
+    if (!enableCheats) return;
+
+    // Show help
+    if (Input.GetKeyDown(KeyCode.F1)) {
+        ShowHelp();
+    }
+
+    // Add hope
+    if (Input.GetKeyDown(KeyCode.H)) {
+        AddHope(100);
+    }
+
+    // Reduce hope (test death)
+    if (Input.GetKeyDown(KeyCode.K)) {
+        ReduceHope();
+    }
+
+    // Add points
+    if (Input.GetKeyDown(KeyCode.P)) {
+        AddPoints(100);
+    }
+
+    // Teleport to safe zone
+    if (Input.GetKeyDown(KeyCode.S)) {
+        TeleportToSafeZone();
+    }
+
+    // Reset progress
+    if (Input.GetKeyDown(KeyCode.R) && Input.GetKey(KeyCode.LeftControl)) {
+        ResetProgress();
+    }
+
+    // Spawn enemy
+    if (Input.GetKeyDown(KeyCode.E)) {
+        SpawnEnemy();
+    }
+
+    // Spawn death sphere
+    if (Input.GetKeyDown(KeyCode.D)) {
+        SpawnDeathSphere();
+    }
+
+    // Toggle debug info
+    if (Input.GetKeyDown(KeyCode.F2)) {
+        showDebugInfo = !showDebugInfo;
+        Debug.Log("TestHelper: Debug info " + (showDebugInfo ? "enabled" : "disabled"));
+    }
+}
+
+// =============================================================================
+// DEBUG COMMANDS
+// =============================================================================
+function ShowHelp() {
+    Debug.Log("═══════════════════════════════════════════════════════");
+    Debug.Log("              ABYSS TEST HELPER - DEBUG COMMANDS");
+    Debug.Log("═══════════════════════════════════════════════════════");
+    Debug.Log("F1  - Show this help menu");
+    Debug.Log("F2  - Toggle debug info display");
+    Debug.Log("H   - Add 100 hope");
+    Debug.Log("K   - Reduce hope to 1 (test death)");
+    Debug.Log("P   - Add 100 points");
+    Debug.Log("S   - Teleport to nearest safe zone");
+    Debug.Log("E   - Spawn enemy at player location");
+    Debug.Log("D   - Spawn death sphere nearby");
+    Debug.Log("Ctrl+R - Reset all progress");
+    Debug.Log("═══════════════════════════════════════════════════════");
+}
+
+function AddHope(amount : float) {
+    if (playerChar == null) {
+        Debug.LogError("TestHelper: Player character not found!");
+        return;
+    }
+
+    playerChar.currentHope = Mathf.Min(playerChar.currentHope + amount, playerChar.maxHope);
+    Debug.Log("TestHelper: Added " + amount + " hope. Current: " + playerChar.currentHope);
+}
+
+function ReduceHope() {
+    if (playerChar == null) {
+        Debug.LogError("TestHelper: Player character not found!");
+        return;
+    }
+
+    playerChar.currentHope = 1.0;
+    Debug.Log("TestHelper: Hope reduced to 1 (death imminent!)");
+}
+
+function AddPoints(amount : int) {
+    if (gameProgress == null) {
+        Debug.LogError("TestHelper: GameProgress not found!");
+        return;
+    }
+
+    gameProgress.AddPoints(amount, "Debug command");
+    Debug.Log("TestHelper: Added " + amount + " points");
+}
+
+function TeleportToSafeZone() {
+    if (player == null) {
+        Debug.LogError("TestHelper: Player not found!");
+        return;
+    }
+
+    // Find nearest safe zone
+    var safeZones = GameObject.FindGameObjectsWithTag("SafeZone");
+    if (safeZones.length == 0) {
+        // Try finding by script if no tag
+        var allSafeZones = FindObjectsOfType(SafeZone);
+        if (allSafeZones.length == 0) {
+            Debug.LogWarning("TestHelper: No safe zones found in scene!");
+            return;
+        }
+
+        var nearestZone : SafeZone = allSafeZones[0];
+        player.transform.position = nearestZone.transform.position + Vector3.up * 2;
+        Debug.Log("TestHelper: Teleported to " + nearestZone.zoneName);
+    } else {
+        player.transform.position = safeZones[0].transform.position + Vector3.up * 2;
+        Debug.Log("TestHelper: Teleported to safe zone");
+    }
+}
+
+function SpawnEnemy() {
+    if (player == null) {
+        Debug.LogError("TestHelper: Player not found!");
+        return;
+    }
+
+    // Create sphere
+    var enemySphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+    enemySphere.name = "TestEnemy_" + Time.time;
+    enemySphere.transform.position = player.transform.position + new Vector3(3, 1, 3);
+    enemySphere.tag = "Enemy";
+
+    // Add SPHIRE script
+    var sphireScript = enemySphere.AddComponent(SPHIRE);
+
+    // Make it red
+    var renderer = enemySphere.GetComponent(Renderer);
+    if (renderer != null) {
+        renderer.material.color = Color.red;
+    }
+
+    Debug.Log("TestHelper: Spawned enemy at " + enemySphere.transform.position);
+}
+
+function SpawnDeathSphere() {
+    if (player == null) {
+        Debug.LogError("TestHelper: Player not found!");
+        return;
+    }
+
+    // Create sphere
+    var deathSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+    deathSphere.name = "TestDeathSphere_" + Time.time;
+    deathSphere.transform.position = player.transform.position + new Vector3(-3, 1, -3);
+    deathSphere.transform.localScale = Vector3.one * 2;
+    deathSphere.tag = "DeathSphere";
+
+    // Add Shere script
+    var shereScript = deathSphere.AddComponent(Shere);
+    shereScript.player = player;
+
+    // Make it dark red
+    var renderer = deathSphere.GetComponent(Renderer);
+    if (renderer != null) {
+        renderer.material.color = new Color(0.3, 0, 0);
+    }
+
+    Debug.Log("TestHelper: Spawned death sphere at " + deathSphere.transform.position);
+}
+
+function ResetProgress() {
+    if (gameProgress == null) {
+        Debug.LogError("TestHelper: GameProgress not found!");
+        return;
+    }
+
+    gameProgress.ResetProgress();
+    Debug.Log("TestHelper: All progress reset!");
+}
+
+// =============================================================================
+// DEBUG INFO DISPLAY
+// =============================================================================
+function OnGUI() {
+    if (!showDebugInfo) return;
+
+    var style = new GUIStyle();
+    style.fontSize = 12;
+    style.normal.textColor = Color.yellow;
+    style.alignment = TextAnchor.UpperLeft;
+
+    var yPos = 100;
+    var lineHeight = 20;
+
+    GUI.Label(new Rect(10, yPos, 400, lineHeight), "=== DEBUG INFO (F1 for commands) ===", style);
+    yPos += lineHeight;
+
+    if (playerChar != null) {
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Hope: " + playerChar.currentHope.ToString("F1") + " / " + playerChar.maxHope, style);
+        yPos += lineHeight;
+
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Position: " + player.transform.position.ToString("F1"), style);
+        yPos += lineHeight;
+
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Is Safe: " + playerChar.isSafe, style);
+        yPos += lineHeight;
+
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Is Afraid: " + playerChar.isAfraid, style);
+        yPos += lineHeight;
+    }
+
+    if (gameProgress != null) {
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Score: " + gameProgress.GetTotalPoints() + " (High: " + gameProgress.GetHighScore() + ")", style);
+        yPos += lineHeight;
+
+        GUI.Label(new Rect(10, yPos, 400, lineHeight),
+                  "Safe Zones Found: " + gameProgress.GetSafeZonesFound(), style);
+        yPos += lineHeight;
+    }
+
+    // Enemy count
+    var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    GUI.Label(new Rect(10, yPos, 400, lineHeight),
+              "Enemies in scene: " + enemies.length, style);
+    yPos += lineHeight;
+
+    // FPS
+    var fps = 1.0 / Time.deltaTime;
+    GUI.Label(new Rect(10, yPos, 400, lineHeight),
+              "FPS: " + fps.ToString("F0"), style);
+}
