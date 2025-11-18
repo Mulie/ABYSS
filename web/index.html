@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ABYSS - A Journey of Hope</title>
+    <meta name="description" content="Guide Hope through a dangerous abyss as she searches for peace and safety.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: none;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        #hopePanel {
+            top: 20px;
+            left: 20px;
+            min-width: 300px;
+        }
+
+        #scorePanel {
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            min-width: 250px;
+        }
+
+        #statusPanel {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .hope-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .hope-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.3s ease, background 0.3s ease;
+            border-radius: 15px;
+        }
+
+        .hope-fill.low {
+            background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .hope-fill.critical {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .status-text {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 30px;
+            border-radius: 20px;
+        }
+
+        .status-safe {
+            background: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+            border: 2px solid #22c55e;
+        }
+
+        .status-danger {
+            background: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            border: 2px solid #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        .status-exploring {
+            background: rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            border: 2px solid #3b82f6;
+        }
+
+        /* Start Screen */
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f1e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+
+        #startScreen.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(96, 165, 250, 0.5);
+        }
+
+        .game-subtitle {
+            font-size: 24px;
+            color: #a0a0a0;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .game-description {
+            font-size: 16px;
+            color: #808080;
+            max-width: 700px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .start-button {
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6);
+        }
+
+        .controls-hint {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #606060;
+        }
+
+        .controls-hint strong {
+            color: #a0a0a0;
+        }
+
+        /* Game Over Screen */
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+
+        #gameOverScreen.show {
+            display: flex;
+        }
+
+        .game-over-title {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .game-over-stats {
+            font-size: 18px;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+        }
+
+        .restart-button {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Milestone Notification */
+        #milestoneNotification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1a1a2e;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 50;
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.6);
+        }
+
+        #milestoneNotification.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Mobile Controls */
+        @media (max-width: 768px) {
+            .game-title { font-size: 48px; }
+            .game-subtitle { font-size: 18px; }
+            .hud-panel { padding: 10px 15px; }
+            #hopePanel, #scorePanel { min-width: 200px; }
+            .stat-value { font-size: 18px; }
+        }
+
+        /* Loading */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div id="hopePanel" class="hud-panel">
+                <div class="stat-label">Hope's Hope</div>
+                <div class="stat-value"><span id="hopeName">Hope</span>: <span id="hopePercent">100</span>%</div>
+                <div class="hope-bar">
+                    <div class="hope-fill" id="hopeFill" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div id="scorePanel" class="hud-panel">
+                <div class="stat-label">Score</div>
+                <div class="stat-value"><span id="score">0</span> pts</div>
+                <div class="stat-label" style="margin-top: 10px;">High Score</div>
+                <div class="stat-value" style="font-size: 18px;"><span id="highScore">0</span></div>
+                <div class="stat-label" style="margin-top: 10px;">Safe Zones</div>
+                <div class="stat-value" style="font-size: 18px;"><span id="safeZones">0</span></div>
+            </div>
+
+            <div id="statusPanel" class="hud-panel">
+                <div class="status-text status-exploring" id="status">Exploring</div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <h1 class="game-title">ABYSS</h1>
+            <p class="game-subtitle">A Journey of Hope</p>
+            <p class="game-description">
+                You are Hope, a young girl lost in a dangerous abyss. Navigate through hostile enemies
+                and deadly hazards while searching for safe zones - sanctuaries where you can rest,
+                recover, and earn points. Your hope fades in danger but recovers in safety.
+                How long can you survive?
+            </p>
+            <button class="start-button" onclick="startGame()">Begin Journey</button>
+            <div class="controls-hint">
+                <strong>Controls:</strong> WASD or Arrow Keys to move • Shift to sprint<br>
+                Mouse to look around • Find the green safe zones!
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen">
+            <h2 class="game-over-title">Hope Has Faded...</h2>
+            <div class="game-over-stats">
+                <p>You survived for <span id="survivalTime">0</span> seconds</p>
+                <p>Score: <span id="finalScore">0</span> points</p>
+                <p>Safe zones found: <span id="finalSafeZones">0</span></p>
+            </div>
+            <button class="restart-button" onclick="restartGame()">Try Again</button>
+        </div>
+
+        <!-- Milestone Notification -->
+        <div id="milestoneNotification"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

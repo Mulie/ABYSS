@@ -1,6 +1,14 @@
 # ABYSS
 
-A narrative-driven Unity survival game following a young girl's journey through a dangerous abyss as she searches for peace, safety, and hope.
+A narrative-driven survival game following a young girl's journey through a dangerous abyss as she searches for peace, safety, and hope.
+
+## 🎮 Play Now
+
+**Web Version (Play in Browser):**
+👉 [Open `/web/index.html`](web/index.html) in your browser or [deploy to the web](WEB_DEPLOYMENT.md)!
+
+**Unity Version:**
+Available for Windows, macOS, Linux - see [Setup Instructions](#setup-instructions) below
 
 ## Story
 
@@ -344,13 +352,47 @@ ABYSS is a survival game where players must balance exploration with self-preser
    - Multiple biomes with unique themes
    - Secret areas with rare safe zones
 
+## Web Version
+
+ABYSS is now available as a browser-based game!
+
+**Features:**
+- ✅ Play instantly in any modern browser
+- ✅ No downloads or installation required
+- ✅ Works on desktop, mobile, and tablets
+- ✅ High score persistence via localStorage
+- ✅ Full game experience with all mechanics
+- ✅ Built with Three.js for smooth 3D graphics
+
+**Quick Start:**
+```bash
+cd web/
+python -m http.server 8000
+# Open http://localhost:8000
+```
+
+**Deploy to Web:**
+See [WEB_DEPLOYMENT.md](WEB_DEPLOYMENT.md) for GitHub Pages, Netlify, Vercel, and itch.io deployment guides.
+
+**Web Version Location:** `/web/`
+
 ## Technical Notes
 
+### Unity Version
 - Written in UnityScript (JavaScript for Unity)
 - Uses `#pragma strict` for type safety
 - Compatible with older Unity versions
 - Note: `Application.LoadLevel` is deprecated in Unity 5.3+
   - Consider migrating to `SceneManager.LoadScene()` for newer Unity versions
+- **WebGL Build:** UnityScript not supported - see [UNITY_WEBGL_BUILD.md](UNITY_WEBGL_BUILD.md)
+
+### Web Version
+- Built with Three.js r128 for 3D rendering
+- Vanilla JavaScript (ES6+)
+- No build process required
+- ~100KB total file size
+- Runs at 60 FPS on modern browsers
+- See [web/README.md](web/README.md) for details
 
 ## Requirements
 
