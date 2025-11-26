@@ -1,0 +1,16 @@
+# Product Images Directory
+
+This directory contains product images for the e-commerce website.
+
+## Image Guidelines:
+- Recommended size: 800x800 pixels
+- Format: JPG or PNG
+- Optimize images for web to reduce loading time
+- Use descriptive filenames (e.g., wireless-headphones.jpg)
+
+## Adding Images:
+1. Place product images in this directory
+2. Update the product data in js/products.js
+3. Set the 'image' property to the filename (e.g., 'images/product-name.jpg')
+
+Currently using Font Awesome icons as placeholders for product images.
