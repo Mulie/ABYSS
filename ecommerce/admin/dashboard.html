@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LIYU.ca Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>LIYU.ca</h2>
+            <span class="admin-badge">Admin</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="inventory.html" class="nav-item">
+                <i class="fas fa-boxes"></i>
+                <span>Inventory</span>
+                <span class="badge badge-warning" id="low-stock-badge">3</span>
+            </a>
+            <a href="pricing.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Pricing</span>
+            </a>
+            <a href="promotions.html" class="nav-item">
+                <i class="fas fa-percent"></i>
+                <span>Promotions</span>
+            </a>
+            <a href="orders.html" class="nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+                <span class="badge badge-primary" id="pending-orders">12</span>
+            </a>
+            <a href="products.html" class="nav-item">
+                <i class="fas fa-box"></i>
+                <span>Products</span>
+            </a>
+            <a href="customers.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Customers</span>
+            </a>
+            <a href="analytics.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fas fa-user-shield"></i>
+                <span>Users & Roles</span>
+            </a>
+            <a href="audit-logs.html" class="nav-item">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Audit Logs</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div>
+                    <strong id="admin-name">Admin User</strong>
+                    <small id="admin-role">Super Admin</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="topbar-title">
+                <h1>Dashboard</h1>
+                <span class="breadcrumb">Home / Dashboard</span>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="icon-btn" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="notification-bell">
+                    <button class="icon-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">5</span>
+                    </button>
+                </div>
+                <div class="session-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="session-timer">29:45</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="admin-content">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #3b82f6;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>$45,231</h3>
+                        <p>Revenue (Today)</p>
+                        <span class="kpi-change positive">
+                            <i class="fas fa-arrow-up"></i> 12.5%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #10b981;">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>247</h3>
+                        <p>Orders (Today)</p>
+                        <span class="kpi-change positive">
+                            <i class="fas fa-arrow-up"></i> 8.2%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f59e0b;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>1,234</h3>
+                        <p>Total SKUs</p>
+                        <span class="kpi-change">
+                            <i class="fas fa-exclamation-triangle"></i> 3 Low Stock
+                        </span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #8b5cf6;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>8,543</h3>
+                        <p>Active Customers</p>
+                        <span class="kpi-change positive">
+                            <i class="fas fa-arrow-up"></i> 5.1%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="dashboard-row">
+                <div class="card performance-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-tachometer-alt"></i> Site Performance</h3>
+                        <span class="status-badge success">Healthy</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <span>LCP (Largest Contentful Paint)</span>
+                                <span class="metric-target">Target: ≤ 2.5s</span>
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-progress" style="width: 65%; background: #10b981;"></div>
+                            </div>
+                            <span class="metric-value">1.8s</span>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <span>INP (Interaction to Next Paint)</span>
+                                <span class="metric-target">Target: ≤ 200ms</span>
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-progress" style="width: 72%; background: #10b981;"></div>
+                            </div>
+                            <span class="metric-value">144ms</span>
+                        </div>
+
+                        <div class="metric-item">
+                            <div class="metric-label">
+                                <span>CLS (Cumulative Layout Shift)</span>
+                                <span class="metric-target">Target: ≤ 0.1</span>
+                            </div>
+                            <div class="metric-bar">
+                                <div class="metric-progress" style="width: 45%; background: #10b981;"></div>
+                            </div>
+                            <span class="metric-value">0.045</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card alerts-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Critical Alerts</h3>
+                        <button class="btn btn-sm">View All</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert-item warning">
+                            <i class="fas fa-box"></i>
+                            <div>
+                                <strong>Low Stock Alert</strong>
+                                <p>3 SKUs below reorder threshold</p>
+                                <small>2 minutes ago</small>
+                            </div>
+                        </div>
+                        <div class="alert-item info">
+                            <i class="fas fa-sync"></i>
+                            <div>
+                                <strong>Inventory Sync</strong>
+                                <p>POS sync completed successfully</p>
+                                <small>15 minutes ago</small>
+                            </div>
+                        </div>
+                        <div class="alert-item success">
+                            <i class="fas fa-percent"></i>
+                            <div>
+                                <strong>Promotion Active</strong>
+                                <p>Holiday Sale 2025 is now live</p>
+                                <small>1 hour ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity & Promotions -->
+            <div class="dashboard-row">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Recent Price Changes</h3>
+                        <a href="pricing.html" class="btn btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Product</th>
+                                    <th>Old Price</th>
+                                    <th>New Price</th>
+                                    <th>Changed By</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-price-changes">
+                                <tr>
+                                    <td>WH-001</td>
+                                    <td>Wireless Headphones</td>
+                                    <td>$89.99</td>
+                                    <td class="price-down">$79.99</td>
+                                    <td>admin@liyu.ca</td>
+                                    <td>10 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td>FW-003</td>
+                                    <td>Smart Fitness Watch</td>
+                                    <td>$179.99</td>
+                                    <td class="price-up">$199.99</td>
+                                    <td>merchandiser@liyu.ca</td>
+                                    <td>1 hour ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-percent"></i> Active Promotions</h3>
+                        <a href="promotions.html" class="btn btn-sm">Manage</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="promotion-item">
+                            <div class="promo-badge">20% OFF</div>
+                            <div class="promo-details">
+                                <strong>Holiday Sale 2025</strong>
+                                <p>Electronics category</p>
+                                <div class="promo-stats">
+                                    <span><i class="fas fa-shopping-cart"></i> 145 uses</span>
+                                    <span><i class="fas fa-clock"></i> Ends in 5 days</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="promotion-item">
+                            <div class="promo-badge">BOGO</div>
+                            <div class="promo-details">
+                                <strong>Buy One Get One</strong>
+                                <p>Fashion accessories</p>
+                                <div class="promo-stats">
+                                    <span><i class="fas fa-shopping-cart"></i> 67 uses</span>
+                                    <span><i class="fas fa-clock"></i> Ends in 12 days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-common.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - LIYU.ca Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>LIYU.ca</h2>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+            <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+            <a href="pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Pricing</span></a>
+            <a href="promotions.html" class="nav-item"><i class="fas fa-percent"></i><span>Promotions</span></a>
+            <a href="orders.html" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Orders</span></a>
+            <a href="users.html" class="nav-item"><i class="fas fa-user-shield"></i><span>Users & Roles</span></a>
+            <a href="audit-logs.html" class="nav-item active"><i class="fas fa-clipboard-list"></i><span>Audit Logs</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div><strong>Admin User</strong><small>Super Admin</small></div>
+            </div>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="topbar-title">
+                <h1>Audit Logs</h1>
+                <span class="breadcrumb">Home / Audit Logs</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn btn-secondary" onclick="exportLogs()">
+                    <i class="fas fa-download"></i> Export Logs
+                </button>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <!-- Audit Summary -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #3b82f6;">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>2,456</h3>
+                        <p>Total Actions Today</p>
+                        <span class="kpi-change">Across all users</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #10b981;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>12</h3>
+                        <p>Active Users</p>
+                        <span class="kpi-change">Currently logged in</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f59e0b;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>3</h3>
+                        <p>Failed Login Attempts</p>
+                        <span class="kpi-change">Last 24 hours</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #8b5cf6;">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>30 days</h3>
+                        <p>Log Retention</p>
+                        <span class="kpi-change">GDPR compliant</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> Filter Logs</h3>
+                </div>
+                <div class="card-body">
+                    <div class="audit-filters">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date Range</label>
+                                <select id="date-range">
+                                    <option value="today">Today</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="7days">Last 7 Days</option>
+                                    <option value="30days">Last 30 Days</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Action Type</label>
+                                <select id="action-type">
+                                    <option value="">All Actions</option>
+                                    <option value="login">Login/Logout</option>
+                                    <option value="inventory">Inventory Changes</option>
+                                    <option value="pricing">Price Changes</option>
+                                    <option value="promotion">Promotion Changes</option>
+                                    <option value="user">User Management</option>
+                                    <option value="order">Order Actions</option>
+                                    <option value="system">System Events</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>User</label>
+                                <select id="user-filter">
+                                    <option value="">All Users</option>
+                                    <option value="admin@liyu.ca">admin@liyu.ca</option>
+                                    <option value="merchandiser@liyu.ca">merchandiser@liyu.ca</option>
+                                    <option value="marketing@liyu.ca">marketing@liyu.ca</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Severity</label>
+                                <select id="severity-filter">
+                                    <option value="">All Levels</option>
+                                    <option value="info">Info</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="error">Error</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="log-search" placeholder="Search logs by keyword, SKU, order ID...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Log Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Activity Log</h3>
+                    <span class="log-count">Showing 50 of 2,456 entries</span>
+                </div>
+                <div class="card-body">
+                    <table class="data-table audit-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Resource</th>
+                                <th>Details</th>
+                                <th>IP Address</th>
+                                <th>Severity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-log-body">
+                            <tr>
+                                <td>2025-11-26 14:32:15</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>admin@liyu.ca</span>
+                                    </div>
+                                </td>
+                                <td><span class="action-badge pricing">Price Update</span></td>
+                                <td><code>WH-001</code></td>
+                                <td>
+                                    <div class="log-details">
+                                        Changed price from $89.99 to $79.99
+                                        <button class="btn-expand" onclick="expandDetails(1)">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                    <div id="details-1" class="expanded-details" style="display: none;">
+                                        <strong>Before:</strong>
+                                        <pre>{ "list_price": 89.99, "sale_price": null }</pre>
+                                        <strong>After:</strong>
+                                        <pre>{ "list_price": 89.99, "sale_price": 79.99 }</pre>
+                                        <strong>Reason:</strong> Holiday promotion
+                                    </div>
+                                </td>
+                                <td>192.168.1.10</td>
+                                <td><span class="severity-badge info">Info</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="viewFullLog(1)" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 14:28:03</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>merchandiser@liyu.ca</span>
+                                    </div>
+                                </td>
+                                <td><span class="action-badge inventory">Inventory Adjust</span></td>
+                                <td><code>FW-002</code></td>
+                                <td>
+                                    <div class="log-details">
+                                        Adjusted quantity +50 units (Stock received)
+                                    </div>
+                                </td>
+                                <td>192.168.1.15</td>
+                                <td><span class="severity-badge info">Info</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="viewFullLog(2)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 14:15:42</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>marketing@liyu.ca</span>
+                                    </div>
+                                </td>
+                                <td><span class="action-badge promotion">Promo Created</span></td>
+                                <td><code>PROMO-2025-145</code></td>
+                                <td>
+                                    <div class="log-details">
+                                        Created promotion "Holiday Sale 2025" with 20% discount
+                                    </div>
+                                </td>
+                                <td>192.168.1.20</td>
+                                <td><span class="severity-badge info">Info</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="viewFullLog(3)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 13:45:12</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>system@liyu.ca</span>
+                                    </div>
+                                </td>
+                                <td><span class="action-badge system">Login Failed</span></td>
+                                <td>—</td>
+                                <td>
+                                    <div class="log-details">
+                                        Failed login attempt for unknown@test.com (invalid credentials)
+                                    </div>
+                                </td>
+                                <td>203.45.123.89</td>
+                                <td><span class="severity-badge warning">Warning</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="viewFullLog(4)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 12:30:55</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>admin@liyu.ca</span>
+                                    </div>
+                                </td>
+                                <td><span class="action-badge user">User Created</span></td>
+                                <td><code>fulfillment@liyu.ca</code></td>
+                                <td>
+                                    <div class="log-details">
+                                        Created new user with role "Fulfillment"
+                                    </div>
+                                </td>
+                                <td>192.168.1.10</td>
+                                <td><span class="severity-badge info">Info</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="viewFullLog(5)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="table-pagination">
+                        <button class="btn btn-sm" onclick="loadPreviousPage()">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <span>Page 1 of 50</span>
+                        <button class="btn btn-sm" onclick="loadNextPage()">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Security Events -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shield-alt"></i> Security Events</h3>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>User/IP</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-11-26 13:45:12</td>
+                                <td>Failed Login</td>
+                                <td>203.45.123.89</td>
+                                <td>Invalid credentials for unknown@test.com</td>
+                                <td><span class="severity-badge warning">Warning</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 11:20:35</td>
+                                <td>Session Expired</td>
+                                <td>admin@liyu.ca</td>
+                                <td>Auto-logout after 30 min inactivity</td>
+                                <td><span class="severity-badge info">Info</span></td>
+                            </tr>
+                            <tr>
+                                <td>2025-11-26 09:15:00</td>
+                                <td>MFA Verified</td>
+                                <td>merchandiser@liyu.ca</td>
+                                <td>Two-factor authentication successful</td>
+                                <td><span class="severity-badge success">Success</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/admin-common.js"></script>
+    <script src="js/admin-audit.js"></script>
+</body>
+</html>

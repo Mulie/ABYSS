@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - LIYU.ca Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <!-- Sidebar (same as dashboard) -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>LIYU.ca</h2>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </a>
+            <a href="inventory.html" class="nav-item active">
+                <i class="fas fa-boxes"></i><span>Inventory</span>
+                <span class="badge badge-warning" id="low-stock-badge">3</span>
+            </a>
+            <a href="pricing.html" class="nav-item">
+                <i class="fas fa-tags"></i><span>Pricing</span>
+            </a>
+            <a href="promotions.html" class="nav-item">
+                <i class="fas fa-percent"></i><span>Promotions</span>
+            </a>
+            <a href="orders.html" class="nav-item">
+                <i class="fas fa-shopping-cart"></i><span>Orders</span>
+            </a>
+            <a href="products.html" class="nav-item">
+                <i class="fas fa-box"></i><span>Products</span>
+            </a>
+            <a href="audit-logs.html" class="nav-item">
+                <i class="fas fa-clipboard-list"></i><span>Audit Logs</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div>
+                    <strong id="admin-name">Admin User</strong>
+                    <small id="admin-role">Super Admin</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="topbar-title">
+                <h1>Inventory Management</h1>
+                <span class="breadcrumb">Home / Inventory</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showBulkImport()">
+                    <i class="fas fa-upload"></i> Bulk Import
+                </button>
+                <button class="btn btn-secondary" onclick="exportInventory()">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <!-- Inventory Summary -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #3b82f6;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>1,234</h3>
+                        <p>Total SKUs</p>
+                        <span class="kpi-change">Across 3 locations</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>987</h3>
+                        <p>In Stock</p>
+                        <span class="kpi-change positive">80% availability</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f59e0b;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>3</h3>
+                        <p>Low Stock</p>
+                        <span class="kpi-change negative">Below threshold</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #ef4444;">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>15</h3>
+                        <p>Out of Stock</p>
+                        <span class="kpi-change negative">Needs reorder</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="inventory-filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="inventory-search" placeholder="Search SKU, product name...">
+                        </div>
+                        <select id="location-filter">
+                            <option value="">All Locations</option>
+                            <option value="warehouse-1">Warehouse 1 - Toronto</option>
+                            <option value="warehouse-2">Warehouse 2 - Vancouver</option>
+                            <option value="store-1">Store - Montreal</option>
+                        </select>
+                        <select id="status-filter">
+                            <option value="">All Status</option>
+                            <option value="in-stock">In Stock</option>
+                            <option value="low-stock">Low Stock</option>
+                            <option value="out-of-stock">Out of Stock</option>
+                            <option value="reserved">Reserved</option>
+                        </select>
+                        <select id="category-filter">
+                            <option value="">All Categories</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="home">Home & Living</option>
+                            <option value="sports">Sports</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-warehouse"></i> Inventory Items</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-sm" onclick="toggleBulkActions()">
+                            <i class="fas fa-check-square"></i> Bulk Actions
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="data-table inventory-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all"></th>
+                                <th>SKU</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Location</th>
+                                <th>On Hand</th>
+                                <th>Reserved</th>
+                                <th>Available</th>
+                                <th>Reorder Point</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <tr>
+                                <td><input type="checkbox" class="row-select"></td>
+                                <td><strong>WH-001</strong></td>
+                                <td>Wireless Bluetooth Headphones</td>
+                                <td>Electronics</td>
+                                <td>Warehouse 1</td>
+                                <td>145</td>
+                                <td>12</td>
+                                <td class="stock-ok">133</td>
+                                <td>20</td>
+                                <td><span class="status-badge success">In Stock</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="adjustInventory('WH-001')" title="Adjust">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="viewHistory('WH-001')" title="History">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="row-select"></td>
+                                <td><strong>FW-002</strong></td>
+                                <td>Smart Fitness Watch</td>
+                                <td>Electronics</td>
+                                <td>Warehouse 1</td>
+                                <td>8</td>
+                                <td>3</td>
+                                <td class="stock-low">5</td>
+                                <td>15</td>
+                                <td><span class="status-badge warning">Low Stock</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="adjustInventory('FW-002')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="viewHistory('FW-002')">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" class="row-select"></td>
+                                <td><strong>DJ-003</strong></td>
+                                <td>Casual Denim Jacket</td>
+                                <td>Fashion</td>
+                                <td>Store - Montreal</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td class="stock-out">0</td>
+                                <td>10</td>
+                                <td><span class="status-badge danger">Out of Stock</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="adjustInventory('DJ-003')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="viewHistory('DJ-003')">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bulk Actions Panel (hidden by default) -->
+            <div id="bulk-actions-panel" class="bulk-actions-panel" style="display: none;">
+                <div class="bulk-actions-content">
+                    <span><i class="fas fa-check-square"></i> <strong id="selected-count">0</strong> items selected</span>
+                    <div class="bulk-actions-buttons">
+                        <button class="btn btn-sm" onclick="bulkAdjust()">
+                            <i class="fas fa-edit"></i> Bulk Adjust
+                        </button>
+                        <button class="btn btn-sm" onclick="bulkTransfer()">
+                            <i class="fas fa-exchange-alt"></i> Transfer
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="clearSelection()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Adjust Inventory Modal -->
+    <div id="adjust-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Adjust Inventory</h3>
+                <button class="btn-close" onclick="closeModal('adjust-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="adjust-form">
+                    <div class="form-group">
+                        <label>SKU</label>
+                        <input type="text" id="adjust-sku" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Product</label>
+                        <input type="text" id="adjust-product" readonly>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current On Hand</label>
+                            <input type="number" id="current-quantity" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Adjustment Type</label>
+                            <select id="adjustment-type">
+                                <option value="add">Add Stock</option>
+                                <option value="remove">Remove Stock</option>
+                                <option value="set">Set Quantity</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="adjust-quantity" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason <span class="required">*</span></label>
+                        <select id="adjust-reason" required>
+                            <option value="">Select reason...</option>
+                            <option value="received">Stock Received</option>
+                            <option value="return">Customer Return</option>
+                            <option value="damaged">Damaged Goods</option>
+                            <option value="theft">Theft/Loss</option>
+                            <option value="correction">Inventory Correction</option>
+                            <option value="transfer">Location Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="adjust-notes" rows="3" placeholder="Additional notes..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('adjust-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Adjustment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulk-import-modal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fas fa-upload"></i> Bulk Import Inventory</h3>
+                <button class="btn-close" onclick="closeModal('bulk-import-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-instructions">
+                    <h4>Instructions:</h4>
+                    <ol>
+                        <li>Download the CSV template</li>
+                        <li>Fill in your inventory data</li>
+                        <li>Upload the completed file</li>
+                    </ol>
+                    <button class="btn btn-secondary" onclick="downloadTemplate()">
+                        <i class="fas fa-download"></i> Download Template
+                    </button>
+                </div>
+                <div class="upload-area" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag and drop CSV file here or click to browse</p>
+                    <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('csv-upload').click()">
+                        Select File
+                    </button>
+                </div>
+                <div id="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">Uploading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-common.js"></script>
+    <script src="js/admin-inventory.js"></script>
+</body>
+</html>

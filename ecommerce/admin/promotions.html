@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promotion & Coupon Management - LIYU.ca Admin</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-page">
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>LIYU.ca</h2>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+            <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+            <a href="pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Pricing</span></a>
+            <a href="promotions.html" class="nav-item active"><i class="fas fa-percent"></i><span>Promotions</span></a>
+            <a href="orders.html" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Orders</span></a>
+            <a href="audit-logs.html" class="nav-item"><i class="fas fa-clipboard-list"></i><span>Audit Logs</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div><strong>Marketing User</strong><small>Marketing</small></div>
+            </div>
+            <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="topbar-title">
+                <h1>Promotions & Coupons</h1>
+                <span class="breadcrumb">Home / Promotions</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="createPromotion()">
+                    <i class="fas fa-plus"></i> Create Promotion
+                </button>
+                <button class="btn btn-secondary" onclick="generateCoupons()">
+                    <i class="fas fa-ticket-alt"></i> Generate Coupons
+                </button>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <!-- Promotion Stats -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #3b82f6;">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>8</h3>
+                        <p>Active Promotions</p>
+                        <span class="kpi-change">3 expiring soon</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #10b981;">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>1,247</h3>
+                        <p>Coupon Uses (Today)</p>
+                        <span class="kpi-change positive"><i class="fas fa-arrow-up"></i> 15.3%</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #f59e0b;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>$12,450</h3>
+                        <p>Revenue from Promos</p>
+                        <span class="kpi-change positive"><i class="fas fa-arrow-up"></i> 23%</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: #8b5cf6;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <h3>34.5%</h3>
+                        <p>Avg Discount Applied</p>
+                        <span class="kpi-change">Cross-category</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Promotions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-fire"></i> Active Promotions</h3>
+                    <div class="card-actions">
+                        <select id="promo-filter">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="promotions-grid">
+                        <!-- Promotion Card 1 -->
+                        <div class="promotion-card active">
+                            <div class="promo-header">
+                                <div class="promo-badge">20% OFF</div>
+                                <div class="promo-status">
+                                    <span class="status-badge success">Active</span>
+                                </div>
+                            </div>
+                            <h4>Holiday Sale 2025</h4>
+                            <p class="promo-description">20% off all electronics</p>
+                            <div class="promo-details">
+                                <div class="promo-stat">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>145 uses</span>
+                                </div>
+                                <div class="promo-stat">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>$4,230 revenue</span>
+                                </div>
+                            </div>
+                            <div class="promo-dates">
+                                <i class="fas fa-calendar"></i>
+                                <span>Nov 20 - Dec 31, 2025</span>
+                            </div>
+                            <div class="promo-countdown">
+                                <i class="fas fa-clock"></i>
+                                <span>Ends in 5 days</span>
+                            </div>
+                            <div class="promo-actions">
+                                <button class="btn btn-sm" onclick="editPromotion(1)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="viewReport(1)">
+                                    <i class="fas fa-chart-bar"></i> Report
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="pausePromotion(1)">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Promotion Card 2 -->
+                        <div class="promotion-card active">
+                            <div class="promo-header">
+                                <div class="promo-badge bogo">BOGO</div>
+                                <div class="promo-status">
+                                    <span class="status-badge success">Active</span>
+                                </div>
+                            </div>
+                            <h4>Buy One Get One Free</h4>
+                            <p class="promo-description">Fashion accessories</p>
+                            <div class="promo-details">
+                                <div class="promo-stat">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>67 uses</span>
+                                </div>
+                                <div class="promo-stat">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>$2,100 revenue</span>
+                                </div>
+                            </div>
+                            <div class="promo-dates">
+                                <i class="fas fa-calendar"></i>
+                                <span>Nov 15 - Dec 15, 2025</span>
+                            </div>
+                            <div class="promo-countdown">
+                                <i class="fas fa-clock"></i>
+                                <span>Ends in 12 days</span>
+                            </div>
+                            <div class="promo-actions">
+                                <button class="btn btn-sm" onclick="editPromotion(2)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="viewReport(2)">
+                                    <i class="fas fa-chart-bar"></i> Report
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="pausePromotion(2)">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Promotion Card 3 -->
+                        <div class="promotion-card scheduled">
+                            <div class="promo-header">
+                                <div class="promo-badge">Free Shipping</div>
+                                <div class="promo-status">
+                                    <span class="status-badge info">Scheduled</span>
+                                </div>
+                            </div>
+                            <h4>Black Friday Free Shipping</h4>
+                            <p class="promo-description">Orders over $50</p>
+                            <div class="promo-details">
+                                <div class="promo-stat">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>0 uses</span>
+                                </div>
+                                <div class="promo-stat">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>$0 revenue</span>
+                                </div>
+                            </div>
+                            <div class="promo-dates">
+                                <i class="fas fa-calendar"></i>
+                                <span>Dec 1 - Dec 31, 2025</span>
+                            </div>
+                            <div class="promo-countdown">
+                                <i class="fas fa-clock"></i>
+                                <span>Starts in 3 days</span>
+                            </div>
+                            <div class="promo-actions">
+                                <button class="btn btn-sm" onclick="editPromotion(3)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick="activateNow(3)">
+                                    <i class="fas fa-play"></i> Start Now
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="cancelPromotion(3)">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupon Codes -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-ticket-alt"></i> Coupon Codes</h3>
+                    <button class="btn btn-sm btn-primary" onclick="generateCoupons()">
+                        <i class="fas fa-plus"></i> Generate Codes
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Type</th>
+                                <th>Discount</th>
+                                <th>Usage</th>
+                                <th>Limit</th>
+                                <th>Valid Period</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code class="coupon-code">WELCOME20</code></td>
+                                <td>Percentage</td>
+                                <td>20%</td>
+                                <td>342 / ∞</td>
+                                <td>1 per user</td>
+                                <td>2025-01-01 to 2025-12-31</td>
+                                <td><span class="status-badge success">Active</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="editCoupon('WELCOME20')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="copyCoupon('WELCOME20')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn-icon btn-danger" onclick="deactivateCoupon('WELCOME20')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="coupon-code">SAVE50</code></td>
+                                <td>Flat Amount</td>
+                                <td>$50.00</td>
+                                <td>89 / 100</td>
+                                <td>Global limit</td>
+                                <td>2025-11-01 to 2025-12-31</td>
+                                <td><span class="status-badge success">Active</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="editCoupon('SAVE50')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="copyCoupon('SAVE50')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn-icon btn-danger" onclick="deactivateCoupon('SAVE50')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="coupon-code">FREESHIP</code></td>
+                                <td>Free Shipping</td>
+                                <td>Shipping</td>
+                                <td>567 / ∞</td>
+                                <td>Min $50 order</td>
+                                <td>2025-01-01 to 2025-12-31</td>
+                                <td><span class="status-badge success">Active</span></td>
+                                <td>
+                                    <button class="btn-icon" onclick="editCoupon('FREESHIP')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="copyCoupon('FREESHIP')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn-icon btn-danger" onclick="deactivateCoupon('FREESHIP')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Promotion Modal -->
+    <div id="create-promo-modal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Create New Promotion</h3>
+                <button class="btn-close" onclick="closeModal('create-promo-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-promo-form">
+                    <div class="form-group">
+                        <label>Promotion Name <span class="required">*</span></label>
+                        <input type="text" id="promo-name" required placeholder="e.g., Holiday Sale 2025">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Promotion Type <span class="required">*</span></label>
+                        <select id="promo-type" required>
+                            <option value="">Select type...</option>
+                            <option value="percentage">Percentage Discount</option>
+                            <option value="flat">Flat Amount Discount</option>
+                            <option value="bogo">Buy One Get One</option>
+                            <option value="free-shipping">Free Shipping</option>
+                            <option value="bundle">Bundle Deal</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row" id="discount-amount-row">
+                        <div class="form-group">
+                            <label>Discount Value <span class="required">*</span></label>
+                            <input type="number" id="discount-value" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit</label>
+                            <select id="discount-unit">
+                                <option value="percent">Percentage (%)</option>
+                                <option value="cad">CAD ($)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Apply To</label>
+                        <select id="promo-apply-to">
+                            <option value="all">All Products</option>
+                            <option value="category">Specific Category</option>
+                            <option value="products">Specific Products</option>
+                            <option value="brands">Specific Brands</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="category-select" style="display: none;">
+                        <label>Select Category</label>
+                        <select id="promo-category">
+                            <option value="electronics">Electronics</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="home">Home & Living</option>
+                            <option value="sports">Sports</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date & Time <span class="required">*</span></label>
+                            <input type="datetime-local" id="promo-start" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date & Time <span class="required">*</span></label>
+                            <input type="datetime-local" id="promo-end" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Usage Limits</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="global-limit">
+                                Global usage limit
+                            </label>
+                            <input type="number" id="global-limit-value" min="1" placeholder="e.g., 1000" disabled>
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="per-user-limit">
+                                Per user limit
+                            </label>
+                            <input type="number" id="per-user-limit-value" min="1" placeholder="e.g., 1" disabled>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Minimum Order Value (CAD)</label>
+                        <input type="number" id="min-order-value" min="0" step="0.01" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stackable with Other Promotions?</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="stackable" value="yes">
+                                Yes
+                            </label>
+                            <label>
+                                <input type="radio" name="stackable" value="no" checked>
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Test Mode</label>
+                        <label class="switch">
+                            <input type="checkbox" id="test-mode">
+                            <span class="slider"></span>
+                        </label>
+                        <small>Enable test mode to preview without activating</small>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('create-promo-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Create Promotion
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-common.js"></script>
+    <script src="js/admin-promotions.js"></script>
+</body>
+</html>
